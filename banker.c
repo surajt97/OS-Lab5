@@ -1,10 +1,11 @@
 /*
  * Banker's Algorithm for SOFE 3950U / CSCI 3020U: Operating Systems
  *
- * Copyright (C) 2015, <GROUP MEMBERS>
+ * Copyright (C) 2015, <Nicholas Gregorio, Jason Runzer, Albert Fung>
  * All rights reserved.
  * 
  */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
