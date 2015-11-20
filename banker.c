@@ -16,8 +16,8 @@
 
 // Put any other macros or constants here using #define
 // May be any values >= 0
-#define NUM_CUSTOMERS 5
-#define NUM_RESOURCES 3
+#define NUM_CUSTOMERS 2
+#define NUM_RESOURCES 2
 
 
 // Put global environment variables here
@@ -25,10 +25,10 @@
 int available[NUM_RESOURCES];
 
 // Maximum demand of each customer
-int maximum[NUM_CUSTOMERS][NUM_RESOURCES];
+int maximum[NUM_CUSTOMERS][NUM_RESOURCES] = {{5, 7}, {3, 0}};
 
 // Amount currently allocated to each customer
-int allocation[NUM_CUSTOMERS][NUM_RESOURCES];
+int allocation[NUM_CUSTOMERS][NUM_RESOURCES] = {{2,2},{2,2}};
 
 // Remaining need of each customer
 int need[NUM_CUSTOMERS][NUM_RESOURCES];
@@ -37,14 +37,7 @@ int need[NUM_CUSTOMERS][NUM_RESOURCES];
 // Define functions declared in banker.h here
  bool request_res(int n_customer, int request[])
 {
-    int size = sizeof(request) / sizeof(request[0]);
-    int work[size];
 
-    //Copy the request array to the work array.
-    for(int i = 0; i <= size; i++){
-        work[i] = request[i];
-        
-    }
     return true;
 }
 
@@ -55,6 +48,57 @@ bool release_res(int n_customer, int release[])
 }
 
 
+bool is_safe(int n_customer, int available[], int need[][NUM_RESOURCES], int allocation[][NUM_RESOURCES]) {
+    //Create & initialize variables for checking the safe sequences
+    int size = sizeof(available) / sizeof(available[0]);
+    int work[size];
+    bool finish[n_customer];
+    int finishCounter=0;
+    bool safe = true;
+
+
+    //Copy the request array to the work array.
+    for(int i = 0; i <= size; i++){
+        work[i] = available[i];
+        
+    }
+
+    //Initialize finish array
+    for (int j = 0; j<n_customer; j++) {
+        finish[j] = false;
+    }
+
+    /* Nested for loop for traversing the 2 dimensional arrays
+    *if a given need element is less or equal to a corresponding work element, and if the current finishCounter is false, we want to increment the work value by the corresponding allocation element
+    *Otherwise, we want to keep our given finish element at false and increment the counter
+    *The final finish array will will determine the outcome of is_safe
+    */
+    for (int row = 0; row < NUM_RESOURCES; row++) {
+        for (int column = 0; column < NUM_CUSTOMERS; column++) {
+            if ((need[row][column] <= work[column]) && (finish[finishCounter] == false)) {
+                work[column] = work[column] + allocation[row][column];
+                finish[finishCounter] = true;
+                finishCounter++;
+            } else {
+                finish[finishCounter] = false;
+                finishCounter++;
+                
+            }
+
+        }
+    }
+
+
+    for (int count2=0; count2<n_customer; count2++) {
+        if (finish[count2] != true) {
+            safe = false;
+            break;
+        }
+    }
+    return safe;
+
+}
+
 int main(int argc, char *argv[])
 {
     
@@ -64,16 +108,32 @@ int main(int argc, char *argv[])
     for (int i =0; i < NUM_RESOURCES; i++) {
         //Specifies the max INITIAL availale resources. MAX cannot exceed this
         available[i] = atoi(argv[i+1]);
-
+        
         for(int j=0; j<NUM_CUSTOMERS; j++) {
-            maximum[j][i] = rand() % available[i];
-            //printf("%d, ", maximum[j][i]);
+            //srand(time(NULL));
+            //maximum[j][i] = rand() % available[i];
+            //allocation[j][i] = rand()% available[i];
+            printf("%d ", maximum[j][i]);
+            need[j][i] = maximum[j][i] - allocation[j][i];
+
         }        
-        //printf("\n");
+        printf("\n");
+
     }
     
     
+
+    printf("Made to check safe");
+    
+    if (is_safe(NUM_CUSTOMERS, available, need, allocation)) {
+        printf("Safe works");
+    } else {
+        printf("Safe does not work");
+    }
+    
     // Allocate the available resources
+    //if request res is true, allocate
+
 
     // Initialize the pthreads, locks, mutexes, etc.
 
