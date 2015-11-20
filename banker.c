@@ -33,16 +33,16 @@ int need[NUM_CUSTOMERS][NUM_RESOURCES];
 
 
 // Define functions declared in banker.h here
-// bool request_res(int n_customer, int request[])
-// {
-//      ...
-// }
+ bool request_res(int n_customer, int request[])
+{
+    return true;
+}
 
 // Release resources, returns true if successful
-// bool release_res(int n_customer, int release[])
-// {
-//      ...
-// }
+bool release_res(int n_customer, int release[])
+{
+    return true;
+}
 
 
 int main(int argc, char *argv[])
