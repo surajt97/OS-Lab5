@@ -33,12 +33,41 @@ int allocation[NUM_CUSTOMERS][NUM_RESOURCES];
 // Remaining need of each customer
 int need[NUM_CUSTOMERS][NUM_RESOURCES];
 
+pthread_mutex_t lock;
 
 
 
 
 // Define functions declared in banker.h here
+void *customerMethod(void *customerNum){
+    int customer = *(int*)customerNum;
+    bool acquiredResources = false;
+    int request [NUM_RESOURCES];
+    int release [NUM_RESOURCES];
+    
+    while(1){
+        for(int i = 0; i < NUM_RESOURCES; i++){
+            request[i] = rand() % (maximum[customer][i] + 1);
+        }
+        pthread_mutex_lock(&lock);
+        acquiredResources = request_res(customer,request);
+        pthread_mutex_unlock(&lock);
+        if(acquiredResources){
+            printf("Customer: %d got the resources it wanted! The customer says they will use them and give them back in a bit.\n\n", customer);
+            sleep((int)rand() % 5 + 1);
+            
+            acquiredResources = false;
+        }
+        for(int i = 0; i < NUM_RESOURCES; i++){
+            srand(time(NULL));
+            release[i] = rand() % (allocation[customer][i] + 1);
+        }
+        pthread_mutex_lock(&lock);
+        release_res(customer,release);
+        pthread_mutex_unlock(&lock);
+    }
 
+}
 
 bool is_safe() {
     //Create & initialize variables for checking the safe sequences
@@ -89,12 +118,54 @@ bool is_safe() {
     }
     return safe;
 
+   
 }
 
+bool request_res(int n_customer, int request[]){
+   
+    printf("Customer: %d Requesting Resources\n",n_customer);
+    for(int i = 0; i < NUM_RESOURCES; i++){
+        printf("%d ",request[i]);
+    }
+
+    puts("");
+     printf("Available Resources Before\n");
+    for(int i = 0; i < NUM_RESOURCES; i++){
+        printf("%d ",available[i]);
+    }
+    puts("");
+     for(int i = 0; i < NUM_RESOURCES; i++){
+        if(request[i] <= need[n_customer][i]){
+            if(request[i] > available[i]){
+                printf("THIS WOULD LEAD TO AN UNSAFE STATE! ABORT ABORT! ALL HANDS ON DECK! FUCK WE GONNA DIE!!!!\n");
+                sleep(2);
+                return false;
+            }
+        } else{
+            printf("Customer: %d is WAY TOO NEEDY\n",n_customer);
+            sleep(2);
+            return false;
+        }
+
+    }
+    printf("Customer: %d Taking Resources\n",n_customer);
+    for(int i = 0; i < NUM_RESOURCES; i++){
+        available[i] -= request[i];
+        need[n_customer][i] -= request[i];
+        allocation[n_customer][i] += request[i];
+    }
+    printf("Available Resources After\n");
+    for(int i = 0; i < NUM_RESOURCES; i++){
+        printf("%d ",available[i]);
+    }
+    puts("");
+    return true;
+}
+/*
  bool request_res(int n_customer, int request[])
 {
 
-    for (int j = 0; j<NUM_CUSTOMERS; j++) {
+    for (int j = 0; j<NUM_RESOURCES; j++) {
         if (request[j] <= need[n_customer][j]) {
             if (request[j] <= available[j]) {
                 printf("Request valid so far");
@@ -119,37 +190,75 @@ bool is_safe() {
     return true;
 }
 
+*/
 // Release resources, returns true if successful
 bool release_res(int n_customer, int release[])
-{
+{   
+    puts("");
+    printf("Customer: %d Releasing Resources\n", n_customer);
+    for(int i = 0; i < NUM_RESOURCES; i++){
+        printf("%d ",release[i]);
+        available[i] += release[i];
+        need[n_customer][i] += release[i];
+        allocation[n_customer][i] -= release[i];
+    }
+    puts("");
+    printf("Available Resources\n");
+    for(int i = 0; i < NUM_RESOURCES; i++){
+        printf("%d ",available[i]);
+    }
+    puts("");
     return true;
 }
 
 
 
 int main(int argc, char *argv[])
-{
+{   
     
     // ==================== YOUR CODE HERE ==================== //
 
     // Read in arguments from CLI, NUM_RESOURCES is the number of arguments   
+    pthread_t threads[NUM_CUSTOMERS];
+    pthread_mutex_init(&lock, NULL);
     for (int i =0; i < NUM_RESOURCES; i++) {
         //Specifies the max INITIAL availale resources. MAX cannot exceed this
         available[i] = atoi(argv[i+1]);
         
         for(int j=0; j<NUM_CUSTOMERS; j++) {
-            srand(time(NULL));
-            maximum[j][i] = rand() % available[i];
-            allocation[j][i] = rand()% available[i];
-            printf("%d ", maximum[j][i]);
-            need[j][i] = maximum[j][i] - allocation[j][i];
-
+            //srand(time(NULL));
+            
+            maximum[j][i] = rand() % (available[i] + 1);
+            //allocation[j][i] = rand()% available[i];
+            //printf("%d ", maximum[j][i]);
+            need[j][i] = maximum[j][i];
         }        
-        printf("\n");
+    }
 
+    printf("Maximum Needs\n");
+    for(int i = 0; i < NUM_CUSTOMERS; i++){
+        for(int j = 0; j < NUM_RESOURCES; j++){
+            printf("%3d ",maximum[i][j]);
+        }
+        puts("");
+    }
+
+    for(int i = 0; i < NUM_CUSTOMERS; i++){
+        int *c_num = malloc(sizeof(*c_num));
+        if(c_num ==NULL){
+            printf("couldn't make customer number");
+            exit(1);
+        }
+        *c_num = i;
+        pthread_create(&threads[i],NULL,&customerMethod, c_num);
     }
     
-    
+    //join all the threads
+    for(int i = 0; i < NUM_CUSTOMERS; i++){
+        pthread_join(threads[i],0);
+    }
+    pthread_mutex_destroy(&lock);
+    //int max_resources [NUM_RESOURCES];
 
     printf("Made to check safe\n");
     
