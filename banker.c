@@ -84,7 +84,7 @@ void *customerMethod(void *customerNum){
                     }
                     puts("");
                 }
-                sleep(4);
+                sleep(2);
                 break;
             }
         }
@@ -192,7 +192,7 @@ bool request_res(int n_customer, int request[]){
                         printf("%d ",available[i]);
                     }
                     puts("\n");
-                    sleep(4);
+                    sleep(2);
                     return true;
                 }
                 else{
@@ -237,7 +237,7 @@ bool release_res(int n_customer, int release[])
         printf("%d ",available[i]);
     }
     puts("");
-    sleep(4);
+    sleep(2);
     return true;
 }
 
