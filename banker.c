@@ -212,15 +212,7 @@ bool request_res(int n_customer, int request[]){
         }
 
     }
-    /*
-    printf("Customer: %d Taking Resources\n",n_customer);
-    for(int i = 0; i < NUM_RESOURCES; i++){
-        available[i] -= request[i];
-        need[n_customer][i] -= request[i];
-        allocation[n_customer][i] += request[i];
-    }
-    */
-  
+ 
     return true;
 }
 
